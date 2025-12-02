@@ -45,7 +45,7 @@ El proyecto cuenta con una interfaz gráfica (GUI) desarrollada en HTML y CSS pa
 
 ## Despliegue
 La aplicación se encuentra disponible en la siguiente URL pública:
-(ME FALTA AGREGAR EL GITHUB PAGES)
+[https://colcolat.github.io/Proyecto-3-JJ/]
 
 ---
 
