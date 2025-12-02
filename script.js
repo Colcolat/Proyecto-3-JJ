@@ -98,3 +98,130 @@ btnEncriptar.addEventListener('click', () => {
     resultado.classList.remove('error');
     resultado.textContent = encriptado;
 });
+
+const btnDesencriptar = document.getElementById('desencriptar');
+
+// Función para encontrar el inverso multiplicativo módulo 26
+function inversoMultiplicativo(det) {
+    const detMod = ((det % 26) + 26) % 26;
+    
+    for (let i = 1; i < 26; i++) {
+        if ((detMod * i) % 26 === 1) {
+            return i;
+        }
+    }
+    return null;
+}
+
+// Función para calcular la matriz inversa módulo 26
+function calcularMatrizInversa(key) {
+    const det = key[0][0] * key[1][1] - key[0][1] * key[1][0];
+    const detMod = ((det % 26) + 26) % 26;
+    
+    // Verificar si existe inverso multiplicativo
+    const invDet = inversoMultiplicativo(det);
+    if (invDet === null) {
+        return null;
+    }
+    
+    // Calcular la matriz adjunta (transpuesta de la matriz de cofactores)
+    const adjunta = [
+        [key[1][1], -key[0][1]],
+        [-key[1][0], key[0][0]]
+    ];
+    
+    // Aplicar módulo 26 a la adjunta
+    for (let i = 0; i < 2; i++) {
+        for (let j = 0; j < 2; j++) {
+            adjunta[i][j] = ((adjunta[i][j] % 26) + 26) % 26;
+        }
+    }
+    
+    // Multiplicar por el inverso del determinante
+    const inversa = [
+        [(adjunta[0][0] * invDet) % 26, (adjunta[0][1] * invDet) % 26],
+        [(adjunta[1][0] * invDet) % 26, (adjunta[1][1] * invDet) % 26]
+    ];
+    
+    // Asegurar que los valores estén en el rango 0-25
+    for (let i = 0; i < 2; i++) {
+        for (let j = 0; j < 2; j++) {
+            inversa[i][j] = ((inversa[i][j] % 26) + 26) % 26;
+        }
+    }
+    
+    return inversa;
+}
+
+// Event listener para desencriptar
+btnDesencriptar.addEventListener('click', () => {
+    // Validar inputs
+    const key = [
+        [parseInt(k11.value) || 0, parseInt(k12.value) || 0],
+        [parseInt(k21.value) || 0, parseInt(k22.value) || 0]
+    ];
+    
+    if (key[0][0] === 0 && key[0][1] === 0 && key[1][0] === 0 && key[1][1] === 0) {
+        resultado.textContent = 'Error: Ingresa una matriz clave válida';
+        resultado.classList.add('error');
+        return;
+    }
+    
+    const texto = mensaje.value.toUpperCase().replace(/[^A-Z]/g, '');
+    
+    if (texto.length === 0) {
+        resultado.textContent = 'Error: Ingresa un mensaje encriptado';
+        resultado.classList.add('error');
+        return;
+    }
+    
+    // Verificar que la matriz sea invertible
+    const det = key[0][0] * key[1][1] - key[0][1] * key[1][0];
+    const detMod = ((det % 26) + 26) % 26;
+    
+    if (detMod === 0) {
+        resultado.textContent = 'Error: La matriz no es invertible (determinante = 0 módulo 26)';
+        resultado.classList.add('error');
+        return;
+    }
+    
+    // Calcular matriz inversa
+    const inversa = calcularMatrizInversa(key);
+    
+    if (inversa === null) {
+        resultado.textContent = 'Error: No existe matriz inversa módulo 26';
+        resultado.classList.add('error');
+        return;
+    }
+    
+    // Convertir texto a números
+    let numeros = texto.split('').map(char => char.charCodeAt(0) - 65);
+    
+    // Verificar que la longitud sea par
+    if (numeros.length % 2 !== 0) {
+        resultado.textContent = 'Error: El mensaje encriptado debe tener longitud par';
+        resultado.classList.add('error');
+        return;
+    }
+    
+    // Desencriptar
+    let desencriptado = '';
+    for (let i = 0; i < numeros.length; i += 2) {
+        const v1 = numeros[i];
+        const v2 = numeros[i + 1];
+        
+        const c1 = (inversa[0][0] * v1 + inversa[0][1] * v2) % 26;
+        const c2 = (inversa[1][0] * v1 + inversa[1][1] * v2) % 26;
+        
+        desencriptado += String.fromCharCode(65 + c1);
+        desencriptado += String.fromCharCode(65 + c2);
+    }
+    
+    // Remover padding 'X' si existe al final
+    if (desencriptado.endsWith('X')) {
+        desencriptado = desencriptado.slice(0, -1);
+    }
+    
+    resultado.classList.remove('error');
+    resultado.textContent = desencriptado;
+});
