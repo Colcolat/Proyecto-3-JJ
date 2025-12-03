@@ -112,3 +112,4 @@ btnDesencriptar.addEventListener('click', () => {
     
     resultado.textContent = textoLimpio;
 });
+
