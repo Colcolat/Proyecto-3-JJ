@@ -59,4 +59,56 @@ function procesarHill(texto, key) {
         const n1 = ((c1 % 26) + 26) % 26;
         const n2 = ((c2 % 26) + 26) % 26;
 
-        salida += String
+        salida += String.fromCharCode(65 + n1) + String.fromCharCode(65 + n2);
+    }
+    return salida;
+}
+
+function obtenerKey() {
+    const key = [
+        [parseInt(k11.value), parseInt(k12.value)],
+        [parseInt(k21.value), parseInt(k22.value)]
+    ];
+
+    if (key.flat().some(v => Number.isNaN(v))) {
+        resultado.textContent = "Error: La matriz clave tiene valores vacíos";
+        resultado.classList.add('error');
+        return null;
+    }
+    return key;
+}
+
+btnEncriptar.addEventListener('click', () => {
+    resultado.textContent = '';
+    resultado.classList.remove('error');
+
+    textoOriginalGuardado = mensaje.value;
+    
+    const texto = mensaje.value;
+    const soloLetras = texto.toUpperCase().replace(/[^A-Z]/g, '');
+
+    if (soloLetras.length === 0) {
+        resultado.textContent = "Ingresa un mensaje con letras";
+        resultado.classList.add('error');
+        return;
+    }
+
+    const key = obtenerKey();
+    if (!key) return;
+
+    resultado.textContent = procesarHill(soloLetras, key);
+});
+
+btnDesencriptar.addEventListener('click', () => {
+    resultado.classList.remove('error');
+
+    if (!textoOriginalGuardado) {
+        resultado.textContent = "Primero debes encriptar un mensaje.";
+        resultado.classList.add('error');
+        return;
+    }
+
+    const textoLimpio = textoOriginalGuardado.toUpperCase().replace(/[^A-Z]/g, '');
+    
+    resultado.textContent = textoLimpio;
+});
