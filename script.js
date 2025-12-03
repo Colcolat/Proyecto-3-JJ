@@ -103,10 +103,12 @@ btnDesencriptar.addEventListener('click', () => {
     resultado.classList.remove('error');
 
     if (!textoOriginalGuardado) {
-        resultado.textContent = "Primero debes encriptar un mensaje para poder recuperarlo.";
+        resultado.textContent = "Primero debes encriptar un mensaje.";
         resultado.classList.add('error');
         return;
     }
 
-    resultado.textContent = textoOriginalGuardado;
+    const textoLimpio = textoOriginalGuardado.toUpperCase().replace(/[^A-Z]/g, '');
+    
+    resultado.textContent = textoLimpio;
 });
