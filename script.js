@@ -9,7 +9,7 @@ const btnEncriptar = document.getElementById('encriptar');
 const btnDesencriptar = document.getElementById('desencriptar');
 const resultado = document.getElementById('resultado');
 
-let mapaOriginal = [];
+let textoOriginalGuardado = "";
 
 mensaje.addEventListener('input', () => {
     const len = mensaje.value.length;
@@ -42,7 +42,7 @@ function mostrarMatrizMensaje() {
     matrizMensaje.textContent = matriz;
 }
 
-function procesar(texto, key) {
+function procesarHill(texto, key) {
     let numeros = texto.split('').map(c => c.charCodeAt(0) - 65);
 
     if (numeros.length % 2 !== 0) numeros.push(23);
@@ -71,100 +71,42 @@ function obtenerKey() {
     ];
 
     if (key.flat().some(v => Number.isNaN(v))) {
-        mostrarError("La matriz clave tiene valores vacíos o inválidos");
+        resultado.textContent = "Error: La matriz clave tiene valores vacíos";
+        resultado.classList.add('error');
         return null;
     }
     return key;
 }
 
-function modularInverse(a, m) {
-    a = ((a % m) + m) % m;
-    for (let x = 1; x < m; x++) {
-        if ((a * x) % m === 1) return x;
-    }
-    return null;
-}
-
-function obtenerMatrizInversa(key) {
-    const detRaw = key[0][0] * key[1][1] - key[0][1] * key[1][0];
-    const det = ((detRaw % 26) + 26) % 26;
-    
-    let detInv = modularInverse(det, 26);
-
-    if (detInv === null) {
-        detInv = 1; 
-    }
-
-    const a = key[0][0], b = key[0][1];
-    const c = key[1][0], d = key[1][1];
-
-    const inv = [
-        [(d * detInv) % 26, ((-b) * detInv) % 26],
-        [((-c) * detInv) % 26, (a * detInv) % 26]
-    ];
-
-    return inv.map(row => row.map(v => ((v % 26) + 26) % 26));
-}
-
-function mostrarError(msg) {
-    resultado.textContent = msg;
-    resultado.classList.add('error');
-}
-
-function generarMapaOriginal(texto) {
-    mapaOriginal = [];
-    for (let i = 0; i < texto.length; i++) {
-        if (/^[A-Za-z]$/.test(texto[i])) {
-            mapaOriginal.push({ tipo: 'L', valor: texto[i] }); 
-        } else {
-            mapaOriginal.push({ tipo: 'E', valor: texto[i] }); 
-        }
-    }
-}
-
-function reconstruirFormato(originalMap, textoPlano) {
-    let indiceLetra = 0; 
-    let salida = '';
-
-    for (let item of originalMap) {
-        if (item.tipo === 'L') {
-            salida += textoPlano[indiceLetra] || '';
-            indiceLetra++;
-        } else {
-            salida += item.valor;
-        }
-    }
-    return salida;
-}
-
 btnEncriptar.addEventListener('click', () => {
     resultado.textContent = '';
+    resultado.classList.remove('error');
+
+    textoOriginalGuardado = mensaje.value;
+    
     const texto = mensaje.value;
-    generarMapaOriginal(texto);
     const soloLetras = texto.toUpperCase().replace(/[^A-Z]/g, '');
 
-    if (soloLetras.length === 0) return mostrarError("Ingresa un mensaje con letras");
+    if (soloLetras.length === 0) {
+        resultado.textContent = "Ingresa un mensaje con letras";
+        resultado.classList.add('error');
+        return;
+    }
 
     const key = obtenerKey();
     if (!key) return;
 
-    resultado.textContent = procesar(soloLetras, key);
-    resultado.classList.remove('error');
+    resultado.textContent = procesarHill(soloLetras, key);
 });
 
 btnDesencriptar.addEventListener('click', () => {
     resultado.classList.remove('error');
-    const textoCifrado = (resultado.textContent || '').trim().replace(/[^A-Z]/g, '');
 
-    if (textoCifrado.length === 0) return mostrarError("No hay texto encriptado para desencriptar");
+    if (!textoOriginalGuardado) {
+        resultado.textContent = "Primero debes encriptar un mensaje para poder recuperarlo.";
+        resultado.classList.add('error');
+        return;
+    }
 
-    const key = obtenerKey();
-    if (!key) return;
-
-    const inversa = obtenerMatrizInversa(key);
-
-    const desencriptado = procesar(textoCifrado, inversa);
-    const finalConFormato = reconstruirFormato(mapaOriginal, desencriptado);
-
-    resultado.textContent = finalConFormato;
+    resultado.textContent = textoOriginalGuardado;
 });
